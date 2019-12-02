@@ -1,0 +1,6 @@
+File.read!("./day1.txt")
+|> String.split("\n", trim: true)
+|> Enum.map(&String.to_integer/1)
+|> Enum.map(&(Integer.floor_div(&1, 3) - 2))
+|> Enum.sum()
+|> IO.puts()
