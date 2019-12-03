@@ -2,100 +2,40 @@ const fs = require("fs");
 const assert = require("assert");
 
 // Solution
-
 const solve = input => {
-  const [line1, line2] = input
-    .trim()
-    .split("\n")
-    .map(line => line.split(`,`));
-
   const visited = new Map();
   const crosses = new Set();
-  let pos = [0, 0];
-  let steps = 0;
+  const grids = [[0, 0], [0, 0]];
+  const steps = [0, 0];
 
-  for (let seq of line1) {
-    const op = seq[0];
-    const dist = parseInt(seq.slice(1), 10);
-
-    switch (op) {
-      case "R":
-        for (let i = 0; i < dist; i++) {
-          pos[0] += 1;
-          steps += 1;
-          visited.set(pos.join(","), steps);
-        }
-        break;
-      case "L":
-        for (let i = 0; i < dist; i++) {
-          pos[0] -= 1;
-          steps += 1;
-          visited.set(pos.join(","), steps);
-        }
-        break;
-      case "U":
-        for (let i = 0; i < dist; i++) {
-          pos[1] += 1;
-          steps += 1;
-          visited.set(pos.join(","), steps);
-        }
-        break;
-      case "D":
-        for (let i = 0; i < dist; i++) {
-          pos[1] -= 1;
-          steps += 1;
-          visited.set(pos.join(","), steps);
-        }
-        break;
+  const step = (dir, dist, lineNo) => {
+    const grid = grids[lineNo];
+    grid[dir] += dist;
+    steps[lineNo]++;
+    if (lineNo === 0) {
+      visited.set(grid.join(","), steps[lineNo]);
+    } else if (visited.has(grid.join(","))) {
+      crosses.add(visited.get(grid.join(",")) + steps[lineNo]);
     }
-  }
+  };
 
-  pos = [0, 0];
-  steps = 0;
-
-  for (let seq of line2) {
-    const op = seq[0];
+  const move = (seq, lineNo) => {
     const dist = parseInt(seq.slice(1), 10);
+    if (seq[0] === "R") for (let i = 0; i < dist; i++) step(0, 1, lineNo);
+    if (seq[0] === "L") for (let i = 0; i < dist; i++) step(0, -1, lineNo);
+    if (seq[0] === "U") for (let i = 0; i < dist; i++) step(1, 1, lineNo);
+    if (seq[0] === "D") for (let i = 0; i < dist; i++) step(1, -1, lineNo);
+  };
 
-    switch (op) {
-      case "R":
-        for (let i = 0; i < dist; i++) {
-          pos[0] += 1;
-          steps += 1;
-          if (visited.has(pos.join(","))) {
-            crosses.add(visited.get(pos.join(",")) + steps);
-          }
-        }
-        break;
-      case "L":
-        for (let i = 0; i < dist; i++) {
-          pos[0] -= 1;
-          steps += 1;
-          if (visited.has(pos.join(","))) {
-            crosses.add(visited.get(pos.join(",")) + steps);
-          }
-        }
-        break;
-      case "U":
-        for (let i = 0; i < dist; i++) {
-          pos[1] += 1;
-          steps += 1;
-          if (visited.has(pos.join(","))) {
-            crosses.add(visited.get(pos.join(",")) + steps);
-          }
-        }
-        break;
-      case "D":
-        for (let i = 0; i < dist; i++) {
-          pos[1] -= 1;
-          steps += 1;
-          if (visited.has(pos.join(","))) {
-            crosses.add(visited.get(pos.join(",")) + steps);
-          }
-        }
-        break;
-    }
-  }
+  const travel = (line, lineNo) => {
+    for (let seq of line) move(seq, lineNo);
+  };
+
+  input
+    .trim()
+    .split("\n")
+    .map(line => line.split(`,`))
+    .forEach(travel);
 
   return Math.min(...Array.from(crosses.values()));
 };
