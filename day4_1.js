@@ -1,25 +1,29 @@
-const from = 265275;
-const to = 781584;
+// Utils because JS has no proper built-ins :((
 
-const possibilities = [];
+const range = (a, b) => Array.from({ length: b - a + 1 }, (v, k) => k + a);
 
-function isIncreasingOnly(n) {
-  const chs = Array.from(String(n).split(""));
-  for (let i = 0; i < chs.length; i++) {
-    if (isNaN(+chs[i + 1])) continue;
-    if (+chs[i] > +chs[i + 1]) return false;
+const partition = (arr, size, step) => {
+  const acc = [];
+  for (let i = 0; i < arr.length; i += step) {
+    if (i + step >= arr.length) break;
+    acc.push(arr.slice(i, i + size));
   }
-  return true;
-}
+  return acc;
+};
 
-function hasDoubleDigit(n) {
-  const chs = Array.from(String(n).split(""));
-  for (let i = 0; i < chs.length; i++) if (chs[i] === chs[i + 1]) return true;
-  return false;
-}
+// Solution
 
-for (let n = from; n <= to; n++) {
-  if (isIncreasingOnly(n) && hasDoubleDigit(n)) possibilities.push(n);
-}
+const numToDigitpairs = n => partition([...`${n}`].map(x => parseInt(x)), 2, 1);
 
-console.log(possibilities.length); // 960
+const increasingOnly = n => n.every(([x, y]) => x <= y);
+
+const doubleDigit = n => n.some(([x, y]) => x === y);
+
+const problemFilters = n => {
+  const pairs = numToDigitpairs(n);
+  return increasingOnly(pairs) && doubleDigit(pairs);
+};
+
+const solve = (a, b) => range(a, b).filter(problemFilters).length;
+
+console.log(solve(265275, 781584)); // 960
