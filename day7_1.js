@@ -1,5 +1,6 @@
 const fs = require("fs");
 const assert = require("assert");
+const permutations = require("./permutations");
 
 const getVal = (mem, i, offset) => {
   const mode = Math.floor(
@@ -90,22 +91,8 @@ assert.deepStrictEqual(solveForSeq("3,15,3,16,1002,16,10,16,1,16,15,15,4,15,99,0
 assert.deepStrictEqual(solveForSeq("3,23,3,24,1002,24,10,24,1002,23,-1,23,101,5,23,23,1,24,23,23,4,23,99,0,0", [0,1,2,3,4]), 54321); // prettier-ignore
 assert.deepStrictEqual(solveForSeq("3,31,3,32,1002,32,10,32,1001,31,-2,31,1007,31,0,33,1002,33,7,33,1,33,31,31,1,32,31,31,4,31,99,0,0,0", [1, 0, 4, 3, 2]), 65210); // prettier-ignore
 
-// Don't judge me
-function getCombinations() {
-  const combinations = [];
-  for (let a = 0; a <= 4; a++)
-    for (let b = 0; b <= 4; b++)
-      for (let c = 0; c <= 4; c++)
-        for (let d = 0; d <= 4; d++)
-          for (let e = 0; e <= 4; e++) combinations.push([a, b, c, d, e]);
-  return combinations;
-}
-
-assert.deepStrictEqual(getCombinations().length, Math.pow(5, 5));
-
 const getAnswer = code => {
-  let maxSeq;
-  getCombinations().reduce((max, next) => {
+  return permutations([0, 1, 2, 3, 4]).reduce((max, next) => {
     const output = solveForSeq(code, next);
     if (output > max) {
       maxSeq = next;
@@ -113,13 +100,10 @@ const getAnswer = code => {
     }
     return max;
   }, 0);
-  return maxSeq.join("");
 };
 
-assert.deepStrictEqual(getAnswer("3,15,3,16,1002,16,10,16,1,16,15,15,4,15,99,0,0"), '43210'); //prettier-ignore
-assert.deepStrictEqual(getAnswer("3,23,3,24,1002,24,10,24,1002,23,-1,23,101,5,23,23,1,24,23,23,4,23,99,0,0"), '54321'); // prettier-ignore
-assert.deepStrictEqual(getAnswer("3,31,3,32,1002,32,10,32,1001,31,-2,31,1007,31,0,33,1002,33,7,33,1,33,31,31,1,32,31,31,4,31,99,0,0,0"), '65210'); // prettier-ignore
+assert.deepStrictEqual(getAnswer("3,15,3,16,1002,16,10,16,1,16,15,15,4,15,99,0,0"), 43210); //prettier-ignore
+assert.deepStrictEqual(getAnswer("3,23,3,24,1002,24,10,24,1002,23,-1,23,101,5,23,23,1,24,23,23,4,23,99,0,0"), 54321); // prettier-ignore
+assert.deepStrictEqual(getAnswer("3,31,3,32,1002,32,10,32,1001,31,-2,31,1007,31,0,33,1002,33,7,33,1,33,31,31,1,32,31,31,4,31,99,0,0,0"), 65210); // prettier-ignore
 
-//const code = fs.readFileSync(`./day7.txt`, "utf8");
-// 01111
-// 02330
+console.log(getAnswer(fs.readFileSync(`./day7.txt`, "utf8"))); // 844468
