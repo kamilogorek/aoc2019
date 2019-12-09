@@ -2,89 +2,96 @@ const fs = require("fs");
 const assert = require("assert");
 const permutations = require("./permutations");
 
-const getVal = (mem, i, offset) => {
-  const mode = Math.floor(
-    (mem[i] % Math.pow(10, offset + 2)) / Math.pow(10, offset + 1)
-  );
-  const val = mode === 1 ? mem[i + offset] : mem[mem[i + offset]];
-  return val;
-};
-
-const store = (mem, i, offset, val) => {
-  const dest = mem[i + offset];
-  mem[dest] = val;
-};
-
-const processCode = (code, inputs) => {
-  let output;
-
-  const mem = code
-    .trim()
-    .split(",")
-    .map(x => parseInt(x, 10));
-
-  let i = 0;
-  process: for (; i < mem.length; ) {
-    const seq = mem[i];
-    const com = seq % 100;
-
-    switch (com) {
-      case 1:
-        store(mem, i, 3, getVal(mem, i, 1) + getVal(mem, i, 2));
-        i += 4;
-        break;
-      case 2:
-        store(mem, i, 3, getVal(mem, i, 1) * getVal(mem, i, 2));
-        i += 4;
-        break;
-      case 3:
-        store(mem, i, 1, inputs.shift());
-        i += 2;
-        break;
-      case 4:
-        output = getVal(mem, i, 1);
-        i += 2;
-        break;
-      case 5:
-        if (getVal(mem, i, 1) !== 0) {
-          i = getVal(mem, i, 2);
-        } else {
-          i += 3;
-        }
-        break;
-      case 6:
-        if (getVal(mem, i, 1) === 0) {
-          i = getVal(mem, i, 2);
-        } else {
-          i += 3;
-        }
-        break;
-      case 7:
-        if (getVal(mem, i, 1) < getVal(mem, i, 2)) {
-          store(mem, i, 3, 1);
-        } else {
-          store(mem, i, 3, 0);
-        }
-        i += 4;
-        break;
-      case 8:
-        if (getVal(mem, i, 1) === getVal(mem, i, 2)) {
-          store(mem, i, 3, 1);
-        } else {
-          store(mem, i, 3, 0);
-        }
-        i += 4;
-        break;
-      case 99:
-        break process;
-    }
+class Computer {
+  constructor(code, inputs) {
+    this.inputs = inputs;
+    this.halt = false;
+    this.mem = code
+      .trim()
+      .split(",")
+      .map(x => parseInt(x, 10));
   }
 
-  return output;
-};
+  getVal(i, offset) {
+    const mode = Math.floor(
+      (this.mem[i] % Math.pow(10, offset + 2)) / Math.pow(10, offset + 1)
+    );
+    const valAtOffset = this.mem[i + offset];
+    return mode === 1 ? valAtOffset : this.mem[valAtOffset];
+  }
+
+  store(i, offset, val) {
+    const dest = this.mem[i + offset];
+    this.mem[dest] = val;
+  }
+
+  process() {
+    let output;
+    let idx = 0;
+
+    loop: for (; idx < this.mem.length; ) {
+      const seq = this.mem[idx];
+      const com = seq % 100;
+
+      switch (com) {
+        case 1:
+          this.store(idx, 3, this.getVal(idx, 1) + this.getVal(idx, 2));
+          idx += 4;
+          break;
+        case 2:
+          this.store(idx, 3, this.getVal(idx, 1) * this.getVal(idx, 2));
+          idx += 4;
+          break;
+        case 3:
+          this.store(idx, 1, this.inputs.shift());
+          idx += 2;
+          break;
+        case 4:
+          output = this.getVal(idx, 1);
+          idx += 2;
+          break;
+        case 5:
+          if (this.getVal(idx, 1) !== 0) {
+            idx = this.getVal(idx, 2);
+          } else {
+            idx += 3;
+          }
+          break;
+        case 6:
+          if (this.getVal(idx, 1) === 0) {
+            idx = this.getVal(idx, 2);
+          } else {
+            idx += 3;
+          }
+          break;
+        case 7:
+          if (this.getVal(idx, 1) < this.getVal(idx, 2)) {
+            this.store(idx, 3, 1);
+          } else {
+            this.store(idx, 3, 0);
+          }
+          idx += 4;
+          break;
+        case 8:
+          if (this.getVal(idx, 1) === this.getVal(idx, 2)) {
+            this.store(idx, 3, 1);
+          } else {
+            this.store(idx, 3, 0);
+          }
+          idx += 4;
+          break;
+        case 99:
+          this.halt = true;
+          break loop;
+      }
+    }
+
+    return output;
+  }
+}
 
 function solveForSeq(code, seq) {
-  return seq.reduce((acc, val) => processCode(code, [val, acc]), 0);
+  return seq.reduce((acc, val) => new Computer(code, [val, acc]).process(), 0);
 }
 
 assert.deepStrictEqual(solveForSeq("3,15,3,16,1002,16,10,16,1,16,15,15,4,15,99,0,0", [4, 3, 2, 1, 0]), 43210); // prettier-ignore
